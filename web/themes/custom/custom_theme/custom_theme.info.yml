@@ -1,0 +1,7 @@
+name: Custom Theme
+type: theme
+base theme: claro
+description: 'A custom theme for our Drupal site.'
+core_version_requirement: ^9 || ^10
+libraries:
+  - custom_theme/global-styling 

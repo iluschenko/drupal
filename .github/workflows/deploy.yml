@@ -1,0 +1,45 @@
+name: Deploy Drupal
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, dom, filter, gd, json, mysqlnd, pdo_mysql, simplexml, tokenizer, xmlwriter, zip, fileinfo, curl, exif, ftp, gmp, imap, ldap, mysqli, pdo_mysql, pdo_pgsql, pgsql, soap, sockets, sodium, xmlrpc, xsl, zlib
+        coverage: none
+        
+    - name: Install Composer
+      run: |
+        curl -sS https://getcomposer.org/installer | php
+        sudo mv composer.phar /usr/local/bin/composer
+        
+    - name: Install Drush
+      run: |
+        composer global require drush/drush
+        echo "$HOME/.composer/vendor/bin" >> $GITHUB_PATH
+        
+    - name: Install Dependencies
+      run: composer install --no-dev --optimize-autoloader
+      
+    - name: Run Drush Commands
+      run: |
+        drush cr
+        drush updb -y
+        drush cr
+        drush cim -y
+        drush cr
+      env:
+        DRUPAL_DB_HOST: ${{ secrets.DRUPAL_DB_HOST }}
+        DRUPAL_DB_NAME: ${{ secrets.DRUPAL_DB_NAME }}
+        DRUPAL_DB_USER: ${{ secrets.DRUPAL_DB_USER }}
+        DRUPAL_DB_PASSWORD: ${{ secrets.DRUPAL_DB_PASSWORD }} 

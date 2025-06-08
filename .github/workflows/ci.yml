@@ -1,0 +1,90 @@
+name: Drupal CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: drupal
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, curl, gd, intl, mysql, zip
+        coverage: xdebug
+
+    - name: Install Composer
+      run: |
+        curl -sS https://getcomposer.org/installer | php
+        sudo mv composer.phar /usr/local/bin/composer
+
+    - name: Install Dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run PHPCS
+      run: |
+        ./vendor/bin/phpcs --standard=Drupal,DrupalPractice web/modules/custom
+
+    - name: Run PHPUnit Tests
+      run: |
+        ./vendor/bin/phpunit web/modules/custom/custom_block/tests
+
+    - name: Generate Coverage Report
+      run: |
+        ./vendor/bin/phpunit --coverage-html coverage web/modules/custom/custom_block/tests
+        zip -r coverage.zip coverage/
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-report
+        path: coverage.zip
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+
+    - name: Install Composer
+      run: |
+        curl -sS https://getcomposer.org/installer | php
+        sudo mv composer.phar /usr/local/bin/composer
+
+    - name: Build Project
+      run: |
+        composer install --no-dev --optimize-autoloader
+        composer dump-autoload --optimize
+
+    - name: Create Build Artifact
+      run: |
+        zip -r build.zip web/ vendor/ composer.json composer.lock
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-artifact
+        path: build.zip   

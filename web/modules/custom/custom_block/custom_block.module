@@ -1,0 +1,54 @@
+<?php
+
+/**
+ * @file
+ * Contains custom_block.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function custom_block_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.custom_block':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides a custom block with greeting message.') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function custom_block_block_info() {
+  $blocks['greeting_block'] = [
+    'info' => t('Greeting Block'),
+    'cache' => DRUPAL_CACHE_PER_ROLE,
+  ];
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function custom_block_block_view($delta = '') {
+  $block = [];
+  switch ($delta) {
+    case 'greeting_block':
+      $block['subject'] = t('Welcome Message');
+      $block['content'] = [
+        '#theme' => 'custom_block_greeting',
+        '#message' => t('Welcome to our custom Drupal site!'),
+        '#attached' => [
+          'library' => [
+            'custom_block/custom_block',
+          ],
+        ],
+      ];
+      break;
+  }
+  return $block;
+} 
