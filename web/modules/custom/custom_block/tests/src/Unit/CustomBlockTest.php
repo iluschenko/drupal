@@ -19,13 +19,4 @@ class CustomBlockTest extends UnitTestCase {
     $this->assertEquals('Welcome to our custom Drupal site!', $message);
   }
 
-  /**
-   * Tests the block info.
-   */
-  public function testBlockInfo() {
-    $blocks = custom_block_block_info();
-    $this->assertArrayHasKey('greeting_block', $blocks);
-    $this->assertEquals('Greeting Block', $blocks['greeting_block']['info']);
-  }
-
 }

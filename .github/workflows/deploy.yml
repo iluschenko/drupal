@@ -30,16 +30,3 @@ jobs:
         
     - name: Install Dependencies
       run: composer install --no-dev --optimize-autoloader
-      
-    - name: Run Drush Commands
-      run: |
-        drush cr
-        drush updb -y
-        drush cr
-        drush cim -y
-        drush cr
-      env:
-        DRUPAL_DB_HOST: ${{ secrets.DRUPAL_DB_HOST }}
-        DRUPAL_DB_NAME: ${{ secrets.DRUPAL_DB_NAME }}
-        DRUPAL_DB_USER: ${{ secrets.DRUPAL_DB_USER }}
-        DRUPAL_DB_PASSWORD: ${{ secrets.DRUPAL_DB_PASSWORD }} 
