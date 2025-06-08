@@ -10,4 +10,4 @@
       });
     }
   };
-})(jQuery, Drupal); 
+})(jQuery, Drupal);

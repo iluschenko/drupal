@@ -60,4 +60,4 @@ class GreetingBlock extends BlockBase {
     ];
   }
 
-} 
+}
