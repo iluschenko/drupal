@@ -21,6 +21,10 @@
         "drupal/core-recommended": "^9.0",
         "drupal/core": "^9.0"
     },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7",
+        "drupal/coder": "^8.3"
+    },
     "conflict": {
         "drupal/drupal": "*"
     },
