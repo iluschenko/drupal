@@ -4,12 +4,13 @@
  * Default theme implementation to display a greeting block.
  *
  * Available variables:
- * - message: The greeting message.
+ * - message: The greeting message to display.
  *
  * @ingroup themeable
  */
 #}
 <div class="greeting-block">
-  <div class="greeting-message">{{ message }}</div>
-  <button class="greeting-button">Click me!</button>
+  <div class="greeting-block__content">
+    {{ message }}
+  </div>
 </div> 

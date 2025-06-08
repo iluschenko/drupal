@@ -21,34 +21,21 @@ function custom_block_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
- * Implements hook_block_info().
+ * Implements hook_theme().
  */
-function custom_block_block_info() {
-  $blocks['greeting_block'] = [
-    'info' => t('Greeting Block'),
-    'cache' => DRUPAL_CACHE_PER_ROLE,
+function custom_block_theme() {
+  return [
+    'custom_block_greeting' => [
+      'variables' => [
+        'message' => NULL,
+      ],
+    ],
   ];
-  return $blocks;
 }
 
 /**
- * Implements hook_block_view().
+ * Implements hook_page_attachments().
  */
-function custom_block_block_view($delta = '') {
-  $block = [];
-  switch ($delta) {
-    case 'greeting_block':
-      $block['subject'] = t('Welcome Message');
-      $block['content'] = [
-        '#theme' => 'custom_block_greeting',
-        '#message' => t('Welcome to our custom Drupal site!'),
-        '#attached' => [
-          'library' => [
-            'custom_block/custom_block',
-          ],
-        ],
-      ];
-      break;
-  }
-  return $block;
-} 
+function custom_block_page_attachments(array &$attachments) {
+  $attachments['#attached']['library'][] = 'custom_block/custom_block';
+}
