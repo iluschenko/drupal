@@ -46,11 +46,11 @@ jobs:
 
     - name: Run PHPUnit Tests
       run: |
-        ./vendor/bin/phpunit web/modules/custom/custom_block/tests
+        ./vendor/bin/phpunit web/modules/custom/
 
     - name: Generate Coverage Report
       run: |
-        ./vendor/bin/phpunit --coverage-html coverage web/modules/custom/custom_block/tests
+        ./vendor/bin/phpunit --coverage-html coverage web/modules/custom/
         zip -r coverage.zip coverage/
 
     - name: Upload Coverage Report

@@ -72,4 +72,9 @@
     </listener>
   </listeners>
   <!-- Filter for coverage reports. -->
+  <filter>
+    <whitelist>
+      <directory suffix=".php">web/modules/custom/</directory>
+    </whitelist>
+  </filter>
 </phpunit>
