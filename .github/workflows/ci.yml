@@ -1,10 +1,8 @@
-name: Drupal CI/CD
+name: Drupal CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
   test:
@@ -58,36 +56,3 @@ jobs:
       with:
         name: coverage-report
         path: coverage.zip
-
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-    - uses: actions/checkout@v2
-
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.1'
-
-    - name: Install Composer
-      run: |
-        curl -sS https://getcomposer.org/installer | php
-        sudo mv composer.phar /usr/local/bin/composer
-
-    - name: Build Project
-      run: |
-        composer install --no-dev --optimize-autoloader
-        composer dump-autoload --optimize
-
-    - name: Create Build Artifact
-      run: |
-        zip -r build.zip web/ vendor/ composer.json composer.lock
-
-    - name: Upload Build Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-artifact
-        path: build.zip   

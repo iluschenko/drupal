@@ -1,15 +1,54 @@
-name: Deploy Drupal
+name: Drupal Build and Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, curl, gd, intl, mysql, zip
+        
+    - name: Install Composer
+      run: |
+        curl -sS https://getcomposer.org/installer | php
+        sudo mv composer.phar /usr/local/bin/composer
+
+    - name: Build Project
+      run: |
+        composer install --no-dev --optimize-autoloader
+        composer dump-autoload --optimize
+
+    - name: Create Build Artifact
+      run: |
+        zip -r build.zip web/ vendor/ composer.json composer.lock
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifact
+        path: build.zip
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     
     steps:
     - uses: actions/checkout@v3
+    
+    - name: Download Build Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifact
+        path: .
     
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
