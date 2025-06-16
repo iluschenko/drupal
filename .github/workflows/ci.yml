@@ -3,8 +3,49 @@ name: Drupal CI
 on:
   pull_request:
     branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
+  phpcs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.1'
+        extensions: mbstring, xml, curl, gd, intl, mysql, zip
+
+    - name: Get Composer Cache Directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install Composer
+      run: |
+        curl -sS https://getcomposer.org/installer | php
+        sudo mv composer.phar /usr/local/bin/composer
+
+    - name: Install Dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run PHPCS
+      run: |
+        ./vendor/bin/phpcs --standard=Drupal,DrupalPractice web/modules/custom
+
   test:
     runs-on: ubuntu-latest
     services:
@@ -46,10 +87,6 @@ jobs:
     - name: Install Dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Run PHPCS
-      run: |
-        ./vendor/bin/phpcs --standard=Drupal,DrupalPractice web/modules/custom
-
     - name: Copy phpunit.xml.dist
       run: cp web/core/phpunit.xml.dist phpunit.xml.dist
 
@@ -60,10 +97,35 @@ jobs:
     - name: Generate Coverage Report
       run: |
         ./vendor/bin/phpunit --coverage-html coverage web/modules/custom/
-        zip -r coverage.zip coverage/
 
     - name: Upload Coverage Report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: coverage.zip
+        path: coverage/
+
+  deploy-coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download Coverage Report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: coverage
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
